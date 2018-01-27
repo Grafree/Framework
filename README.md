@@ -4,8 +4,8 @@ This little framework is made from a course I give on PHP. It became a little bi
 
 ## Installing
 
-Not complicated but it needs to install a database and configure the config file.
+Not complicated but it needs to install a database and configure the config.ini file.
 
 ## Documentation
 
-It's in the project once it's installed. By going in the administration.
+All documentation are in the framework. Set where we need it. Classes and methods are PHP doc commented so it can be seen in a contextual way in code editor such as Netbeans. The administration area has a documentation section explaining how code process works.
