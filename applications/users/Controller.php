@@ -222,6 +222,39 @@ class Controller extends CommonController{
             break;  
             
         
+            
+            case 'passwordchangeproccess':
+                                
+                $this->_datas = new stdClass;
+                
+                $id     = ( !empty( $this->_router ) ) ? $this->_router : null;
+                
+                if( $data = $modelUsers->beneficiairePassUpdate( $id ) )
+                {
+                    header( 'location:' . SITE_URL . '/users/passwordchange/success' . $action . '/' . $data->IDBeneficiaire );
+                    
+                    exit;
+                }
+                else 
+                {
+                    $this->_setstatutsForm();
+                }
+                
+            break;    
+                    
+             
+            case 'passwordchange':
+                                
+                $this->_datas = new stdClass;
+                
+                $this->_datas->response     = $this->_interface->getBeneficiaireUpdatedDatas( $this->_router );
+                
+                $this->_view = 'users/beneficiaire-passform';
+                
+            break;
+        
+            
+            
             case 'search' :
                 
                 $this->_datas = new stdClass;

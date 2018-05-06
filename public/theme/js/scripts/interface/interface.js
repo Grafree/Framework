@@ -20,6 +20,26 @@ var interface = function()
             
         });
     });    
+    
+    $('span.input-group-addon.addon-operation i.mdi.mdi-eye').on( 'click', function()
+    {
+        if( $(this).hasClass('mdi-eye') )
+        {
+            $(this).parent().prev().attr('type', 'text'); 
+            
+            $(this).addClass('mdi-eye-off');
+            
+            $(this).removeClass('mdi-eye');
+        }
+        else
+        {
+            $(this).parent().prev().attr('type', 'password');
+            
+            $(this).addClass('mdi-eye');
+            
+            $(this).removeClass('mdi-eye-off');
+        }
+    });
 };
 
 

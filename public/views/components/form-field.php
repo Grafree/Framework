@@ -1,7 +1,7 @@
 <?php
 /*
  * 'name'           => MANDATORY [Field name]
- * 'type'           => MANDATORY [Type of field : 'date', 'input-text', 'input-hidden', 'input-checkbox', 'input-checkbox-list', 'input-radio-list', 'textarea', 'select', 'select-optgroup', 'input-file', 'evaluation', 'no-input'] 
+ * 'type'           => MANDATORY [Type of field : 'date', 'input-text', 'input-password', 'input-email', 'input-url', 'input-hidden', 'input-checkbox', 'input-checkbox-list', 'input-radio-list', 'textarea', 'select', 'select-optgroup', 'input-file', 'evaluation', 'no-input'] 
  * 'title'          => MANDATORY [Label of the field] 
  * 'values'         => MANDATORY|OPTIONAL  [Values to check and/or insert in the field. It SHOULD be in an object format BUT can be empty. 
  *                                          It's usually the build of an Orm containing values for all the form objects. 
@@ -74,7 +74,8 @@ if ($datas['type'] === 'input-hidden') {
     ?>
     <?php
     $error = false;
-    if (isset($datas['required']) && $datas['required']) {
+    if (isset($datas['required']) && $datas['required']) 
+    {
         $error = ( isset($errors[$datas['name']]['empty']) ) ? true : false;
     }
     ?>
@@ -87,236 +88,238 @@ if ($datas['type'] === 'input-hidden') {
         <div<?php if ($colSize !== '0') { ?> class="col-md-<?php echo $colSize; ?> col-sm-<?php echo $colSize; ?> col-xs-12"<?php } ?>>
 
         <?php
-        if ($datas['type'] === 'no-input') {
-            ?>
-            <?php echo nl2br($values); ?>
-            <?php
-        } else {
-            ?> 
-
-                <?php if (isset($datas['add-start']) || isset($datas['add-end'])) { ?>
+        if ($datas['type'] === 'no-input') 
+        {
+            echo nl2br($values);
+        } 
+        else 
+        {
+            if (isset($datas['add-start']) || isset($datas['add-end']) || $datas['type'] === 'input-password') { ?>
                     <div class="input-group">
             <?php
-        }
-        
-        if (isset($datas['add-start'])) {
-            ?><span class="input-group-addon"><?php echo $datas['add-start']; ?></span><?php
-        }
-
-
-        if ($datas['type'] === 'input-text')
-        {
-            ?>
-            <input<?php echo (isset($datas['hints'])) ? ' list="hints"' : ''; ?> type="text"<?php echo $disabled . $readonly; ?> placeholder="<?php echo $placeholder; ?>" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo $values; ?>" class="form-control col-md-7 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>" />
-            <?php
-            if (isset($datas['hints'])) {
-                echo '<datalist id="hints">';
-                foreach ($datas['hints'] as $hint) {
-                    echo '<option value="' . $hint . '">';
-                }
-                echo '</datalist>';
             }
-            ?>
-            <?php
-            
-        } else if ($datas['type'] === 'input-checkbox') {
-            
-            ?>
-            <div class="checkbox">
-                <label for="<?php echo $labelforprefix . $datas['name']; ?>">
-                    <input type="checkbox"<?php echo $disabled . $readonly; ?> name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo ( isset($datas['checkbox-value']) ) ? $datas['checkbox-value'] : ''; ?>" <?php echo ( $values ) ? ' checked="checked"' : ''; ?> class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" /> <?php echo ( isset($datas['checkbox-label']) ) ? $datas['checkbox-label'] : ''; ?>
-                </label>
-            </div>
-            <?php
-            
-        } else if ($datas['type'] === 'textarea') {
-            
-            ?>
-            <textarea<?php echo $disabled . $readonly; ?> rows="<?php echo round($colSize * 1.5); ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" name="<?php echo $datas['name'] . $namelist; ?>" placeholder="<?php echo $placeholder; ?>" class="form-control col-md-7 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>"><?php echo $values; ?></textarea>
-            <?php
-            
-        } else if ($datas['type'] === 'select') {
-            
-            ?>
-            <select<?php echo $disabled . $readonly; ?> id="<?php echo $labelforprefix . $datas['name']; ?>" name="<?php echo $datas['name'] . $namelist; ?>" placeholder="<?php echo $placeholder; ?>" class="form-control col-md-12 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
-            <?php
-            $selectvalue = ( isset($datas['option-selected']) ) ? $datas['option-selected'] : $values;
-            $optionfirstempty = ( isset($datas['option-firstempty']) && $datas['option-firstempty'] ) ? $datas['option-firstempty'] : false;
 
-            echo ( $optionfirstempty ) ? '<option value="0"></value>' : '';
-            echo ( isset($datas['first-option']) ) ? '<option value="' . ( isset($datas['first-value']) ? $datas['first-value'] : '' ) . '">' . $datas['first-option'] . '</value>' : '';
-            
-            $options = ( isset( $datas['options-hours'] ) ) ? $datas['options-hours'] : $datas['options'];
-            
-            foreach( $options as $n => $data ) {
+            if (isset($datas['add-start'])) {
+                ?><span class="input-group-addon"><?php echo $datas['add-start']; ?></span><?php
+            }
+
+
+            if ($datas['type'] === 'input-text' || $datas['type'] === 'input-password' || $datas['type'] === 'input-email' || $datas['type'] === 'input-url')
+            {
                 ?>
-                    <option value="<?php echo $data[$optionvalue]; ?>"<?php echo ( $data[$optionvalue] == $selectvalue ) ? ' selected="selected"' : ''; ?>><?php echo $data[$optionlabel]; ?></option>
+                <input<?php echo (isset($datas['hints'])) ? ' list="hints"' : ''; ?> type="text"<?php echo $disabled . $readonly; ?> placeholder="<?php echo $placeholder; ?>" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo $values; ?>" class="form-control col-md-7 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>" />
                 <?php
-            }
-            ?>
-            </select>
-            <?php
-            
-        } else if ($datas['type'] === 'select-optgroup') {
-            
-            ?>
-            <select<?php echo $disabled . $readonly; ?> id="<?php echo $labelforprefix . $datas['name']; ?>" name="<?php echo $datas['name'] . $namelist; ?>" placeholder="<?php echo $placeholder; ?>" class="form-control col-md-7 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
-            <?php
-            $selectvalue = ( isset($datas['option-selected']) ) ? $datas['option-selected'] : $values;
-            $optionfirstempty = ( isset($datas['option-firstempty']) && $datas['option-firstempty'] ) ? $datas['option-firstempty'] : false;
-
-            echo ( $optionfirstempty ) ? '<option value="0"></value>' : '';
-            echo ( isset($datas['first-option']) ) ? '<option value="' . ( isset($datas['first-value']) ? $datas['first-value'] : '' ) . '">' . $datas['first-option'] . '</value>' : '';
-            foreach ($datas['options'] as $n => $data) {
-                ?>
-                    <optgroup label="<?php echo $data['name']; ?>">
-                    <?php
-                    foreach ($data['options'] as $d) {
-                        ?>
-                            <option value="<?php echo $d[$optionvalue]; ?>"<?php echo ( $d[$optionvalue] == $selectvalue ) ? ' selected="selected"' : ''; ?>><?php echo $d[$optionlabel]; ?></option>
-                        <?php
+                if (isset($datas['hints'])) {
+                    echo '<datalist id="hints">';
+                    foreach ($datas['hints'] as $hint) {
+                        echo '<option value="' . $hint . '">';
                     }
+                    echo '</datalist>';
+                }
+
+                if( $datas['type'] === 'input-password' )
+                {
                     ?>
-                    </optgroup>
-                <?php
-            }
-            ?>
-            </select>
-            <?php
+                    <span class="input-group-addon addon-operation"><i class="mdi mdi-eye"></i></span>
+                    <?php
+                }
+
             
-        } else if ($datas['type'] === 'input-radio-list') {
-            
-            $selectvalue = ( isset($datas['option-selected']) ) ? $datas['option-selected'] : $values;
-            $selectvalue = ( empty($selectvalue) ) ? $datas['options'][0][$optionvalue] : $selectvalue;
-            foreach ($datas['options'] as $n => $data) {
+            } else if ($datas['type'] === 'input-checkbox') {
+
                 ?>
                 <div class="checkbox">
-                    <label for="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>">
-                        <input<?php echo $disabled . $readonly; ?> type="radio" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>" value="<?php echo ( isset($data[$optionvalue]) ) ? $data[$optionvalue] : ''; ?>" <?php echo ( $data[$optionvalue] == $selectvalue ) ? ' checked="checked"' : ''; ?> class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" /> <?php echo ( isset($data[$optionlabel]) ) ? $data[$optionlabel] : ''; ?>
+                    <label for="<?php echo $labelforprefix . $datas['name']; ?>">
+                        <input type="checkbox"<?php echo $disabled . $readonly; ?> name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo ( isset($datas['checkbox-value']) ) ? $datas['checkbox-value'] : ''; ?>" <?php echo ( $values ) ? ' checked="checked"' : ''; ?> class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" /> <?php echo ( isset($datas['checkbox-label']) ) ? $datas['checkbox-label'] : ''; ?>
                     </label>
                 </div>
+                <?php
 
+            } else if ($datas['type'] === 'textarea') {
+
+                ?>
+                <textarea<?php echo $disabled . $readonly; ?> rows="<?php echo round($colSize * 1.5); ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" name="<?php echo $datas['name'] . $namelist; ?>" placeholder="<?php echo $placeholder; ?>" class="form-control col-md-7 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>"><?php echo $values; ?></textarea>
+                <?php
+
+            } else if ($datas['type'] === 'select') {
+
+                ?>
+                <select<?php echo $disabled . $readonly; ?> id="<?php echo $labelforprefix . $datas['name']; ?>" name="<?php echo $datas['name'] . $namelist; ?>" placeholder="<?php echo $placeholder; ?>" class="form-control col-md-12 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
+                <?php
+                $selectvalue = ( isset($datas['option-selected']) ) ? $datas['option-selected'] : $values;
+                $optionfirstempty = ( isset($datas['option-firstempty']) && $datas['option-firstempty'] ) ? $datas['option-firstempty'] : false;
+
+                echo ( $optionfirstempty ) ? '<option value="0"></value>' : '';
+                echo ( isset($datas['first-option']) ) ? '<option value="' . ( isset($datas['first-value']) ? $datas['first-value'] : '' ) . '">' . $datas['first-option'] . '</value>' : '';
+
+                $options = ( isset( $datas['options-hours'] ) ) ? $datas['options-hours'] : $datas['options'];
+
+                foreach( $options as $n => $data ) {
+                    ?>
+                        <option value="<?php echo $data[$optionvalue]; ?>"<?php echo ( $data[$optionvalue] == $selectvalue ) ? ' selected="selected"' : ''; ?>><?php echo $data[$optionlabel]; ?></option>
+                    <?php
+                }
+                ?>
+                </select>
+                <?php
+
+            } else if ($datas['type'] === 'select-optgroup') {
+
+                ?>
+                <select<?php echo $disabled . $readonly; ?> id="<?php echo $labelforprefix . $datas['name']; ?>" name="<?php echo $datas['name'] . $namelist; ?>" placeholder="<?php echo $placeholder; ?>" class="form-control col-md-7 col-xs-12<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
+                <?php
+                $selectvalue = ( isset($datas['option-selected']) ) ? $datas['option-selected'] : $values;
+                $optionfirstempty = ( isset($datas['option-firstempty']) && $datas['option-firstempty'] ) ? $datas['option-firstempty'] : false;
+
+                echo ( $optionfirstempty ) ? '<option value="0"></value>' : '';
+                echo ( isset($datas['first-option']) ) ? '<option value="' . ( isset($datas['first-value']) ? $datas['first-value'] : '' ) . '">' . $datas['first-option'] . '</value>' : '';
+                foreach ($datas['options'] as $n => $data) {
+                    ?>
+                        <optgroup label="<?php echo $data['name']; ?>">
                         <?php
-                    }
-                } else if ($datas['type'] === 'input-checkbox-list') {
-                    foreach ($datas['options'] as $n => $data) {
-                        if (isset($datas['values'])) {
-                            foreach ($datas['values'] as $value) {
-                                if (is_object($value) && $value->$datas['name'] === $data[$optionvalue]) {
-                                    $data['checked'] = true;
-                                }
-                            }
+                        foreach ($data['options'] as $d) {
+                            ?>
+                                <option value="<?php echo $d[$optionvalue]; ?>"<?php echo ( $d[$optionvalue] == $selectvalue ) ? ' selected="selected"' : ''; ?>><?php echo $d[$optionlabel]; ?></option>
+                            <?php
                         }
                         ?>
-                <div class="checkbox">
-                    <label for="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>">
-                        <input<?php echo $disabled . $readonly; ?> type="checkbox" name="<?php echo $datas['name'] . $namelist; ?>[]" id="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>" value="<?php echo ( isset($data[$optionvalue]) ) ? $data[$optionvalue] : ''; ?>" <?php echo ( isset($data['checked']) && $data['checked'] ) ? ' checked="checked"' : ''; ?> class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" /> <?php echo ( isset($data[$optionlabel]) ) ? $data[$optionlabel] : ''; ?>
-                    </label>
-                </div>
+                        </optgroup>
+                    <?php
+                }
+                ?>
+                </select>
+                <?php
 
-                <?php
-            }
-            
-        } else if ($datas['type'] === 'date') {
-            
-            ?>
-            <input<?php echo $disabled . $readonly; ?> type="text" class="form-control datepicker" placeholder="Date" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo $values; ?>" class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
-            <?php
-            
-        } else if ($datas['type'] === 'datetime') {
-            
-            $datesInfos = explode( ' ', $values );
-            if( count( $datesInfos ) === 2 )
-            {
-                list( $thedate, $time ) = $datesInfos;
-                list( $hour, $min, $sec ) = explode( ':', $time );
-            }
-            else
-            {
-                $thedate    = '';
-                $hour       = '09';
-                $min        = '00';
-            }
-            ?>
-            <input <?php echo $disabled . $readonly; ?> type="text" class="form-control datepicker<?php echo ( $error ) ? ' error-form-field' : ''; ?>" placeholder="Date" name="<?php echo $datas['name']; ?>[]" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo $thedate; ?>">
-            <select class="form-control" name="<?php echo $datas['name']; ?>[]" class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
-                <?php foreach( $datas['options-hours'] as $data ){ ?>
-                    <option value="<?php echo $data[$optionvalue]; ?>"<?php echo ( $data[$optionvalue] == $hour.'_'.$min.'_00' ) ? ' selected="selected"' : ''; ?>><?php echo $data[$optionlabel]; ?></option>
-                <?php } ?>
-            </select>
-            <?php
-            
-        } else if ($datas['type'] === 'evaluation') {
-            
-            ?>
-            <div id="<?php echo $datas['name'] . $namelist; ?>">
-                <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
-                <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
-                <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
-                <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
-                <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
-            </div>
-            <input type="hidden" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $datas['name']; ?>" value="<?php echo $values; ?>" class="" />
-            <?php
-                        
-        } else if ($datas['type'] === 'input-file') {
-            
-            if( empty( $values ) || $values === 'nofile') {
-                ?>
-                <input type="file" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $datas['name']; ?>" class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" />
-                <?php
-            } else {
-                ?>
-                <input type="hidden" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $datas['name']; ?>" value="<?php echo $values; ?>">
-                <?php if( isset( $datas[ 'filedir' ] ) ){ ?>
-                    <div class="btn-group">
-                        <a class="btn btn-default" href="<?php echo $datas[ 'filedir' ] .( is_array( $values ) ? $values['name'] : $values ); ?>" title="Télécharger le fichier"><i class="mdi mdi-download"></i> Télécharger le fichier</a>
-                        <?php if( isset( $datas[ 'filedeleteid' ] ) ){ ?>
-                        <button class="btn btn-default" name="filedelete" value="<?php echo $values. '/' .$datas[ 'filedeleteid' ]; ?>" title="Supprimer le fichier"><i class="mdi mdi-close danger"></i></button>
-                        <?php } ?>
+            } else if ($datas['type'] === 'input-radio-list') {
+
+                $selectvalue = ( isset($datas['option-selected']) ) ? $datas['option-selected'] : $values;
+                $selectvalue = ( empty($selectvalue) ) ? $datas['options'][0][$optionvalue] : $selectvalue;
+                foreach ($datas['options'] as $n => $data) {
+                    ?>
+                    <div class="checkbox">
+                        <label for="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>">
+                            <input<?php echo $disabled . $readonly; ?> type="radio" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>" value="<?php echo ( isset($data[$optionvalue]) ) ? $data[$optionvalue] : ''; ?>" <?php echo ( $data[$optionvalue] == $selectvalue ) ? ' checked="checked"' : ''; ?> class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" /> <?php echo ( isset($data[$optionlabel]) ) ? $data[$optionlabel] : ''; ?>
+                        </label>
                     </div>
-                <?php }else{ ?>
-                    <div class="alert-success alert">Fichier : <?php echo ( is_array( $values ) ? $values['name'] : $values ); ?></div>
-                <?php } ?>
+
+                            <?php
+                        }
+                    } else if ($datas['type'] === 'input-checkbox-list') {
+                        foreach ($datas['options'] as $n => $data) {
+                            if (isset($datas['values'])) {
+                                foreach ($datas['values'] as $value) {
+                                    if (is_object($value) && $value->$datas['name'] === $data[$optionvalue]) {
+                                        $data['checked'] = true;
+                                    }
+                                }
+                            }
+                            ?>
+                    <div class="checkbox">
+                        <label for="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>">
+                            <input<?php echo $disabled . $readonly; ?> type="checkbox" name="<?php echo $datas['name'] . $namelist; ?>[]" id="<?php echo $labelforprefix . $datas['name']; ?>_<?php echo $n; ?>" value="<?php echo ( isset($data[$optionvalue]) ) ? $data[$optionvalue] : ''; ?>" <?php echo ( isset($data['checked']) && $data['checked'] ) ? ' checked="checked"' : ''; ?> class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" /> <?php echo ( isset($data[$optionlabel]) ) ? $data[$optionlabel] : ''; ?>
+                        </label>
+                    </div>
+
+                    <?php
+                }
+
+            } else if ($datas['type'] === 'date') {
+
+                ?>
+                <input<?php echo $disabled . $readonly; ?> type="text" class="form-control datepicker" placeholder="Date" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo $values; ?>" class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
+                <?php
+
+            } else if ($datas['type'] === 'datetime') {
+
+                $datesInfos = explode( ' ', $values );
+                if( count( $datesInfos ) === 2 )
+                {
+                    list( $thedate, $time ) = $datesInfos;
+                    list( $hour, $min, $sec ) = explode( ':', $time );
+                }
+                else
+                {
+                    $thedate    = '';
+                    $hour       = '09';
+                    $min        = '00';
+                }
+                ?>
+                <input <?php echo $disabled . $readonly; ?> type="text" class="form-control datepicker<?php echo ( $error ) ? ' error-form-field' : ''; ?>" placeholder="Date" name="<?php echo $datas['name']; ?>[]" id="<?php echo $labelforprefix . $datas['name']; ?>" value="<?php echo $thedate; ?>">
+                <select class="form-control" name="<?php echo $datas['name']; ?>[]" class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>">
+                    <?php foreach( $datas['options-hours'] as $data ){ ?>
+                        <option value="<?php echo $data[$optionvalue]; ?>"<?php echo ( $data[$optionvalue] == $hour.'_'.$min.'_00' ) ? ' selected="selected"' : ''; ?>><?php echo $data[$optionlabel]; ?></option>
+                    <?php } ?>
+                </select>
+                <?php
+
+            } else if ($datas['type'] === 'evaluation') {
+
+                ?>
+                <div id="<?php echo $datas['name'] . $namelist; ?>">
+                    <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
+                    <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
+                    <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
+                    <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
+                    <i style="font-size:1.9em; line-height:1.4em;" class="mdi mdi-star-outline"></i>
+                </div>
+                <input type="hidden" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $datas['name']; ?>" value="<?php echo $values; ?>" class="" />
+                <?php
+
+            } else if ($datas['type'] === 'input-file') {
+
+                if( empty( $values ) || $values === 'nofile') {
+                    ?>
+                    <input type="file" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $datas['name']; ?>" class="<?php echo ( $error ) ? ' error-form-field' : ''; ?>" />
+                    <?php
+                } else {
+                    ?>
+                    <input type="hidden" name="<?php echo $datas['name'] . $namelist; ?>" id="<?php echo $datas['name']; ?>" value="<?php echo $values; ?>">
+                    <?php if( isset( $datas[ 'filedir' ] ) ){ ?>
+                        <div class="btn-group">
+                            <a class="btn btn-default" href="<?php echo $datas[ 'filedir' ] .( is_array( $values ) ? $values['name'] : $values ); ?>" title="Télécharger le fichier"><i class="mdi mdi-download"></i> Télécharger le fichier</a>
+                            <?php if( isset( $datas[ 'filedeleteid' ] ) ){ ?>
+                            <button class="btn btn-default" name="filedelete" value="<?php echo $values. '/' .$datas[ 'filedeleteid' ]; ?>" title="Supprimer le fichier"><i class="mdi mdi-close danger"></i></button>
+                            <?php } ?>
+                        </div>
+                    <?php }else{ ?>
+                        <div class="alert-success alert">Fichier : <?php echo ( is_array( $values ) ? $values['name'] : $values ); ?></div>
+                    <?php } ?>
+                    <?php
+                }
+            }
+
+            if (isset($datas['add-end'])) {
+                ?><span class="input-group-addon"><?php echo $datas['add-end']; ?></span><?php
+            }
+            ?>
+
+            <?php if (isset($datas['add-start']) || isset($datas['add-end']) || $datas['type'] === 'input-password') { ?>
+                </div>
+            <?php } ?>
+
+
+            <?php
+            if( isset( $datas['infos'] ) )
+            {
+                ?>
+                <div class="alert-info alert"><small><?php echo $datas['infos']; ?></small></div>
                 <?php
             }
-        }
-
-        if (isset($datas['add-end'])) {
-            ?><span class="input-group-addon"><?php echo $datas['add-end']; ?></span><?php
-        }
-        ?>
-            
-        <?php if (isset($datas['add-start']) || isset($datas['add-end'])) { ?>
-            </div>
-        <?php } ?>
-            
-            
-        <?php
-        if( isset( $datas['infos'] ) )
-        {
             ?>
-            <div class="alert-info alert"><small><?php echo $datas['infos']; ?></small></div>
-            <?php
-        }
-        ?>
-            
-        <?php
-        if( isset( $errors[ $datas['name'] ] ) )
-        {
-            $error = $errors[ $datas['name'] ];
-            ?>
-            <ul class="errors-list">
-                <?php echo ( isset( $error['empty'] ) ) ? '<li>Ce champ est requis.</li>' : ''; ?>
-                <?php echo ( isset( $error['format'] ) ) ? '<li>Le format du fichier n\'est pas autorisé.</li>' : ''; ?>
-                <?php echo ( isset( $error['weight'] ) ) ? '<li>Le poids du fichier excède celui autorisé.</li>' : ''; ?>
-                <?php echo ( isset( $error['dimension'] ) ) ? '<li>La taille de l\'image excède celle autorisée.</li>' : ''; ?>
-            </ul>
-            <?php
-        }
-        ?>
 
-        <?php
+            <?php
+            if( isset( $errors[ $datas['name'] ] ) )
+            {
+                $error = $errors[ $datas['name'] ];
+                ?>
+                <ul class="errors-list">
+                    <?php echo ( isset( $error['empty'] ) ) ? '<li>Ce champ est requis.</li>' : ''; ?>
+                    <?php echo ( isset( $error['format'] ) ) ? '<li>Le format du fichier n\'est pas autorisé.</li>' : ''; ?>
+                    <?php echo ( isset( $error['weight'] ) ) ? '<li>Le poids du fichier excède celui autorisé.</li>' : ''; ?>
+                    <?php echo ( isset( $error['dimension'] ) ) ? '<li>La taille de l\'image excède celle autorisée.</li>' : ''; ?>
+                </ul>
+                <?php
+            }
         }
         ?>
         </div>

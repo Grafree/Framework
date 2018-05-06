@@ -110,6 +110,9 @@ input.error-form-field{background:#FAEDEC; border:1px solid #E85445;}
 ul.errors-list{list-style:none; color:#E74C3C; padding-left:0;}
 *:disabled{/*text-decoration:line-through;*/}
 
+div.form-group div.input-group span.input-group-addon.addon-operation{background-color:rgb(255, 255, 255); border-left:0; border-radius:0; cursor:pointer;}
+div.form-group div.input-group span.input-group-addon.addon-operation:last-child{border-radius:0 4px 4px 0;}
+
 .modal-body .form-inline{}
 .modal-body .form-inline div.form-group{width:auto; padding:0; display:inline;}
 .modal-body .form-inline div.form-group>div{padding:0 3px 0 0;}
