@@ -427,13 +427,30 @@ final class Login
     }
     
     
-    public static function passchange()
+    /**
+     * Changes user's password sent from fields 'password1' and 'passowrd2'
+     * It checks if 
+     *  - it has at least 6 caracters 
+     *  - fields values are the same
+     *  - users is connected
+     * Makes the password changes if conditions are right.
+     * 
+     * @param str $return (default 'ajax') echo json_encode for ajax return verdict. Otherwise verdict is returned as an array.
+     * @return array ['token', 'status'=>'FAIL'||'OK', 'data', 'alertsuccess', 'passerror'];
+     */
+    public static function passchange( $return = 'ajax')
     {
-        $Orm    = new Orm( 'users', self::$_users );
+        $Orm    = new Orm( 'beneficiaire', self::$_users );
         
         $password1 = self::$_request->getVar( 'password1' );
         
         $password2 = self::$_request->getVar( 'password2' );
+        
+        $verdict = [ 
+                    'token' => $_SESSION[ 'token' ], 
+                    'status' => 'FAIL',
+                    'data' =>self::$_datas
+                    ];
         
         if( strlen( $password1 ) >= 6 )
         {
@@ -442,36 +459,53 @@ final class Login
                 if( isset( $_SESSION['IdUser'] ) )
                 {
                     $Orm->prepareDatas(['PassUser' => self::_userCryptPass( $password1 ) ] );
-
+                    
                     $Orm->update([ 'IdUser' => $_SESSION['IdUser'] ]);
                 
-                    echo json_encode([ 'token' => $_SESSION[ 'token' ], 'status' => 'OK', 'alertsuccess' => ['newpass' => 'Votre mot de passe vient d\'être changé. <br><strong>Vous pouvez vous connecter</strong>.'], 'data' =>self::$_datas  ]); 
-
-                    exit;
+                    $verdict['status'] = 'OK';
+                    
+                    $verdict['idmsg'] = 'OK';
+                    
+                    $verdict['alertsuccess'] = [
+                        'newpass' => 'Votre mot de passe vient d\'être changé. <br><strong>Vous pouvez vous connecter</strong>.'
+                    ];
                 }
                 else
-                {
-                    echo json_encode([ 'token' => $_SESSION[ 'token' ], 'status' => 'FAIL', 'errors' => ['passerror' => 'Malheureusement le délai pour définir un nouveau mot de passe est échu. Veuillez faire une nouvelle demande de changement de mot de passe.'], 'data' =>self::$_datas  ]); 
-
-                    exit; 
+                {                    
+                    $verdict['idmsg'] = 'deadline';
+                 
+                    $verdict['errors'] = [
+                        'passerror' => 'Malheureusement le délai pour définir un nouveau mot de passe est échu. Veuillez faire une nouvelle demande de changement de mot de passe.'
+                    ];
                 }
             }
             else
             {
-                echo json_encode([ 'token' => $_SESSION[ 'token' ], 'status' => 'FAIL', 'errors' => ['passerror' => 'Les deux mots de passe indiqués ne sont pas les mêmes.'], 'data' =>self::$_datas  ]); 
-                
-                exit;
+                $verdict['idmsg'] = 'notsame';
+                    
+                $verdict['errors'] = [
+                    'passerror' => 'Les deux mots de passe indiqués ne sont pas les mêmes.'
+                ];
             }
         }
         else
         {
-            
-        }            
-        echo json_encode([ 'token' => $_SESSION[ 'token' ], 'status' => 'FAIL', 'errors' => ['passerror' => 'Le mot de passe doit contenir au moins 6 caractères.'], 'data' =>self::$_datas  ]); 
-
-        exit;
-
+             $verdict['idmsg'] = 'digits';
+                
+            $verdict['errors'] = [
+                'passerror' => 'Le mot de passe doit contenir au moins 6 caractères.'
+            ];          
+        }             
+        if( $return === 'ajax' )
+        {    
+            echo json_encode( $verdict ); exit;
+        } 
+        else
+        {
+            return $verdict;
+        }
     }
+    
     
     public static function passrecovery()
     {
@@ -548,18 +582,43 @@ final class Login
     }
     
     
+    /**
+     * Check datas ( ( username || email ) && password ) and send back 
+     * user's bd infos without starting a session
+     * 
+     * @param str $userLogin
+     * @param str $userPass
+     * @return obj | false
+     */
+    public static function loguser( $userLogin, $userPass )
+    {
+        $Orm    = new Orm( 'beneficiaire' );
+        $_userCryptPass  = self::_userCryptPass( $userPass );
+
+        $user = $Orm   ->select()
+                       ->where([ 'PseudoUser'=>$userLogin, 'PassUser'=>$_userCryptPass ])
+                       ->whereorand([ 'EmailUser'=>$userLogin, 'PassUser'=>$_userCryptPass ])
+                       ->first();
+        
+        if( isset( $user ) )
+        {
+            return $user;
+        }
+        else 
+        {
+            return false;
+        }
+        
+    }
+
+
+    
     private static function _loguser( $userLogin, $userPass )
     {
         if( !self::$_datas->isLoguedIn )
         {
-            $Orm    = new Orm( 'users' );
-            $_userCryptPass  = self::_userCryptPass( $userPass );
-
-            $user = $Orm   ->select()
-                           ->where([ 'PseudoUser'=>$userLogin, 'PassUser'=>$_userCryptPass ])
-                           ->whereorand([ 'EmailUser'=>$userLogin, 'PassUser'=>$_userCryptPass ])
-                           ->first();
-            
+            $user = self::loguser($userLogin, $userPass);
+           
             if( isset( $user ) )
             {
                 self::_setUserSession( $user, false );

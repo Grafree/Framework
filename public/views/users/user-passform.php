@@ -4,7 +4,7 @@
 
 <div class="row">
     
-    <form action="<?php echo SITE_URL; ?>/users/passwordchangeproccess" method="post" class="form-horizontal form-label-left" enctype="multipart/form-data" >
+    <form action="<?php echo SITE_URL; ?>/users/passwordchangeproccess/<?php echo $datas->user; ?>" method="post" class="form-horizontal form-label-left" enctype="multipart/form-data" >
 
     <div class="col-md-12 col-sm-12 col-xs-12">
         
@@ -22,18 +22,18 @@
             
             <?php self::_render( 'components/form-field', [ 
                                 'name'        =>'password',
-                                'title'       =>'Précédent mot de passe',
+                                'title'       =>'Mot de passe actuel',
                                 'type'        =>'input-password'
                             ] ); ?>
             <hr>
             <?php self::_render( 'components/form-field', [ 
-                                'name'        =>'passwordnew1',
+                                'name'        =>'password1',
                                 'title'       =>'Nouveau mot de passe',
                                 'type'        =>'input-password'
                             ] ); ?>
             
             <?php self::_render( 'components/form-field', [ 
-                                'name'        =>'passwordnew2',
+                                'name'        =>'password2',
                                 'title'       =>'Confirmer le nouveau mot de passe',
                                 'type'        =>'input-password'
                             ] ); ?>

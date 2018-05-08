@@ -11,7 +11,7 @@
                 <ul class="dropdown-menu dropdown-usermenu animated fadeInDown pull-right">
                     <li><a href="">Profil<span class="badge bg-red pull-right">50%</span></a></li>
                     <li><a href="">Aide</a></li>
-                    <li><a href="<?php echo SITE_URL; ?>/users/passwordchange">Modifier le mot de passe</a></li>
+                    <li><a href="<?php echo SITE_URL; ?>/users/passwordchange">Modifier mon mot de passe</a></li>
                     <li><a href="<?php echo SITE_URL; ?>/login/disconnect">Log Out<i class="mdi mdi-logout pull-right"></i></a></li>
                 </ul>
             </li>

@@ -229,16 +229,11 @@ class Controller extends CommonController{
                 
                 $id     = ( !empty( $this->_router ) ) ? $this->_router : null;
                 
-                if( $data = $modelUsers->beneficiairePassUpdate( $id ) )
-                {
-                    header( 'location:' . SITE_URL . '/users/passwordchange/success' . $action . '/' . $data->IDBeneficiaire );
+                $infos = $modelUsers->userPassUpdate( $id );
+                
+                header( 'location:' . SITE_URL . '/users/passwordchange/' . $infos['verdict']['status'] . '/' . $infos['verdict']['idmsg'] . '/' . $id );
                     
-                    exit;
-                }
-                else 
-                {
-                    $this->_setstatutsForm();
-                }
+                exit;
                 
             break;    
                     
@@ -247,7 +242,9 @@ class Controller extends CommonController{
                                 
                 $this->_datas = new stdClass;
                 
-                $this->_datas->response     = $this->_interface->getBeneficiaireUpdatedDatas( $this->_router );
+                $this->_datas->user         = $_SESSION['adminId'];
+                
+                $this->_datas->response     = $this->_interface->getPasswordMsg( $this->_router );
                 
                 $this->_view = 'users/beneficiaire-passform';
                 

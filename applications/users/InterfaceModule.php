@@ -72,6 +72,61 @@ class InterfaceModule extends Module
         return $groupList;    
     }
    
+        
+    
+    public function getPasswordMsg( $urlDatas )
+    {
+        $updatemessage  = '';
+        
+        $updated        = false;
+
+        $alert          = 'success'; // 'success', 'info', 'warning', 'danger' 
+                
+        $datasUrl       = explode( '/', $urlDatas );
+        
+        if( count( $datasUrl ) >= 2 )
+        {
+            $updated = true;
+            
+            if( $datasUrl[0] === 'FAIL' )
+            {
+                $alert = 'danger';
+            }
+            
+            if( $datasUrl[1] === 'deadline' )
+            {
+                $updatemessage = 'Malheureusement le délai pour définir un nouveau mot de passe est échu. Veuillez faire une nouvelle demande de changement de mot de passe.';
+            }
+            else if( $datasUrl[1] === 'notsame' )
+            {
+                $updatemessage = 'Les deux mots de passe indiqués ne sont pas les mêmes.';
+            }
+            else if( $datasUrl[1] === 'digits' )
+            {
+                $updatemessage = 'Le mot de passe doit contenir au moins 6 caractères.';
+            }
+            else if( $datasUrl[1] === 'passwordwrong' )
+            {
+                $updatemessage = 'Le mot de passe indiqué n\'est pas correct.';
+            }
+            else if( $datasUrl[1] === 'fieldfail' )
+            {
+                $updatemessage = 'Des informations sont manquantes pour valider l\'opération.';
+            }
+            else if( $datasUrl[1] === 'userfail' )
+            {
+                $updatemessage = 'L\'utilisateur correspondant n\'est pas reconnu par le système.';
+            }
+            else if( $datasUrl[1] === 'OK' )
+            {
+                $updatemessage = 'Le mot de passe vient d\'être changé.';
+            }
+        }
+        
+        return [ 'updated' => $updated, 'updatemessage' => $updatemessage, 'alert' => $alert ];
+    }
+    
+    
     
     
     

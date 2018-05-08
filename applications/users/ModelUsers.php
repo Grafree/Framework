@@ -67,6 +67,56 @@ class ModelUsers extends CommonModel {
         return $orm->build( $params );
     }
     
+    
+    /**
+     * Update user password
+     * 
+     * @param int $id
+     * @return array;
+     */
+    public function userPassUpdate( $id )
+    {
+        $orm = new Orm( 'beneficiaire', $this->_dbTables['beneficiaire'] );
+        
+        $infos = [ 'user' => false, 'verdict' => false ];
+        
+        $user = $orm->select()->where([ 'IDBeneficiaire'=>$id ])->first();
+        
+        if( isset( $user ) )
+        {
+            $infos['user'] = $user;
+                    
+            $request = Request::getInstance();
+            
+            if( ( $password = $request->getVar( 'password' ) ) !== null )
+            {
+                
+                if( Login::loguser( $user->EmailBeneficiaire, $password ) )
+                {
+                    $infos['verdict'] = Login::passchange('array');
+                }
+                else 
+                {
+                    $infos['verdict'] = [ 'status' => 'FAIL', 'idmsg' => 'passwordwrong' ];
+                }
+            }
+            else 
+            {
+                $infos['verdict'] = [ 'status' => 'FAIL', 'idmsg' => 'fieldfail' ];
+            }
+        }
+        else 
+        {
+            $infos['verdict'] = [ 'status' => 'FAIL', 'idmsg' => 'userfail' ];
+        }
+        
+        return $infos;
+    }
+    
+    
+    
+    
+    
     /**
      * Updates datas in the database.
      * Do insert and update.
