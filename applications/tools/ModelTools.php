@@ -1197,7 +1197,7 @@ class Model extends CommonModel {
 
     public function '.$table['table'].'Position( $id ){
 
-        $position = new Position( \''.$table['table'].'\', \'Order'.( $this->_tableFirstLetterCapital( $table['table'] ) ).'\' );
+        $position = new Position( \''.$table['table'].'\', \'Order'.( $this->_tableFirstLetterCapital( $table['table'] ) ).'\', $this->_'.$table['table'].' );
 
         $data = $this->'.$table['table'].'([ \''.( ( isset( $table[ 'primaryField' ]['Field'] ) ) ? $table[ 'primaryField' ]['Field'] :  $table['fields'][0]['Field'] ).'\' => $id  ]);
             

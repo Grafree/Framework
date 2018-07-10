@@ -88,7 +88,7 @@ class ModelMenus extends CommonModel {
     
     public function adminmenuPosition( $id ){
 
-        $position = new Position( 'adminmenus', 'OrderMenu' );
+        $position = new Position( 'adminmenus', 'OrderMenu', $this->_dbTables['adminmenus'] );
 
         $menu = $this->adminmenus([ 'IdMenu' => $id  ]);
             
@@ -106,7 +106,8 @@ class ModelMenus extends CommonModel {
     public function adminmenuUpdate( $action = 'insert', $id = null) 
     {
         $orm        = new Orm( 'adminmenus', $this->_dbTables['adminmenus'] );
-        $position   = new Position( 'adminmenus', 'OrderMenu' );
+        
+        $position   = new Position( 'adminmenus', 'OrderMenu', $this->_dbTables['adminmenus'] );
         
         $datas = $orm->prepareGlobalDatas( [ 'POST' => true ] );
         

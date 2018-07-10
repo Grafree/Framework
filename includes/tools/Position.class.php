@@ -24,120 +24,245 @@ use includes\Db;
  * @copyright GPL
  * @version 0.1
  */
-
 class Position{
 
     private $dbTable;
-    private $dbFieldPosition;
+    private $mapTable;
     
-    private $params       = null;
+    private $dbFieldId    = null;
+    private $dbFieldPosition;
+    private $dbFieldCat   = null;
+    private $dbFieldLang  = null;
     
     private $id           = null;
-    private $dbFieldId    = null;
     private $order        = null;
     private $idCategorie  = null;
-    private $dbFieldCat   = null;
     private $idLangue     = null;
-    private $dbFieldLang  = null;
-
+    
+    private $errors       = [];
+    private $params       = null;
     
     /**
+     * Tranforms elements positions in a table
      * 
-     * @param string $dbTable
-     * @param string $dbFieldPosition
+     * Parameters sent must indicate the reference sets by attributes in this class
+     * 
+     * 'dbFieldId' => STRING
+     * 'dbFieldCat' => STRING | ARRAY (Accessory)
+     * 'dbFieldLang' => STRING (Accessory)
+     * 
+     * 'id' => INT
+     * 'idCategorie' => INT
+     * 'order' => INT
+     * 'idLangue' => INT (Accessory)
+     * 
+     * @example $position = new Position( 'dbTable', 'dbFieldPosition' );
+     * @example $position->moveUp([ 'id' => INT, 'dbFieldId' => STRING, 'order' => INT[, 'idCategorie' => INT][, 'dbFieldCat' => STRING || ARRAY] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @example $position->moveDown([ 'id' => INT, 'dbFieldId' => STRING, 'order' => INT[, 'idCategorie' => INT][, 'dbFieldCat' => STRING || ARRAY] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @example $position->getNextPosition([ ['idCategorie' => INT][, 'dbField' => STRING] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @example $position->updatePositions([ 'dbFieldId' => STRING[, 'idCategorie' => INT][, 'dbField' => STRING] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * 
+     * @param string $dbTable           | Table name
+     * @param string $dbFieldPosition   | Field name wich ordering elements
+     * @param string $mapTable          | Map of the table used for the ORM
      * 
      */
-    function __construct( $dbTable, $dbFieldPosition ){
-
+    function __construct( $dbTable, $dbFieldPosition, $mapTable )
+    {
         $this->dbTable          = $dbTable;
+        
         $this->dbFieldPosition  = $dbFieldPosition;
-        
+
+        $this->mapTable         = $mapTable;
     }
 
     /**
      * 
-     * @return array
+     * @param integet $order Element to select from his position
+     * @return object Db Row of the element selected
      */
-    private function findFromPosition( $order ){	
-
-        $db  = DB::db();
+    private function _findFromPosition( $order )
+    {	
+        $orm = new Orm( $this->dbTable, $this->mapTable );
         
-        $condition = ( $this->setQueryConditions() !== '' ) ? $this->setQueryConditions().' AND ' : ' WHERE ';
+        $params = [ $this->dbFieldPosition => $order ];
         
-        $sql = 'SELECT * 
-                FROM '.$this->dbTable
-               .$condition
-               .$this->dbTable.'.'.$this->dbFieldPosition.' = \''.$order.'\'
-                LIMIT 1';
+        
+        if( isset( $this->dbFieldCat ) && isset( $this->idCategorie ) )   //// Get ID of cat
+        {
+           $params[ $this->dbFieldCat ] = $this->idCategorie;
+        }
+        if( isset( $this->dbFieldLang ) && isset( $this->idLangue ) )
+        {
+            $params[ $this->dbFieldLang ] = $this->idLangue; 
+        }
+        
+        $result = $orm->select()->where($params)->first();
 
-         $result = $db->query( $sql ) or die ( $db->error );
-         
-         return $result->fetch_object();
-            
+        if( !isset( $result ) )
+        {
+            $this->errors[ '_findFromPosition' ] = $orm->getQuery();
+        }
+        
+        return $result;            
     }
     
-    
-    private function requestUpdatePosition( $id, $position ){
+    /**
+     * Update in de database the position of an element defined by it's id
+     * 
+     * @param integer $id Element to update
+     * @param integer $position New position
+     */
+    private function _requestUpdatePosition( $id, $position )
+    {
+        $orm = new Orm( $this->dbTable, $this->mapTable );
         
-        $db = DB::db();
+        $orm->prepareDatas([ $this->dbFieldPosition => $position ]);
         
-        $condition = ( $this->setQueryConditions() !== '' ) ? $this->setQueryConditions().' AND ' : ' WHERE ';
+        $result = $orm->update([ $this->dbFieldId => $id ]);
         
-        $sql = 'UPDATE '.$this->dbTable.' SET '
-               .$this->dbTable.'.'.$this->dbFieldPosition.' = \''.$position.'\' '
-               .$condition
-               .$this->dbFieldId.' = \''.$id.'\'';
-        
-        $db->query($sql);
-        
+        if( !isset( $result ) )
+        {
+            $this->errors[ '_requestUpdatePosition' ] = $orm->getQuery();
+        }
     }
     
 
     /**
+     * Coordinate the changing of position by calling the methods
      * 
-     * @return boolean
+     * @return boolean | Always true
      */
-    private function changePosition( $dir = 'up' ){
-            
+    private function _changePosition( $dir = 'up' )
+    {  
         $newOrder = ( $dir == 'up' ) ? $this->order - 1 : $this->order + 1;
-        $slideUsed = $this->findFromPosition( $newOrder );	
+        
+        $slideUsed = $this->_findFromPosition( $newOrder );
+        
         if( isset( $slideUsed ) )
         {
             $dbFieldId = $this->dbFieldId;
+            
             $id  = $slideUsed->$dbFieldId;
-            $this->requestUpdatePosition( $id, $this->order );
-            $this->requestUpdatePosition( $this->id, $newOrder );
+            
+            //echo $id . ',' . $this->order . '|' . $this->id . ',' . $newOrder;
+            
+            $this->_requestUpdatePosition( $id, $this->order );
+            
+            $this->_requestUpdatePosition( $this->id, $newOrder );
+        
+            return true;
+        }
+        else
+        {
+            $orm = new Orm( $this->dbTable, $this->mapTable );
+            
+            $results = $orm->select()->where( $this->_setQueryConditions() )->order( [ $this->dbFieldPosition => 'ASC' ] )->execute();
+                
+            $this->_updateGroupPositions( $results );
+            
+            return false;
+        }
+    }
+
+    /**
+     * Sends true if proccess went well. Send an array of errors otherwise
+     * 
+     * @return boolean | array 
+     */
+    private function _result()
+    {
+        if( isset( $this->errors ) && is_array( $this->errors ) && count( $this->errors ) > 0 )
+        {
+            $this->errors[ 'infos' ] = [ 
+                'dbTable'           => $this->dbTable,
+                'mapTable'          => $this->mapTable,
+                'dbFieldId'         => $this->dbFieldId,
+                'dbFieldPosition'   => $this->dbFieldPosition,
+                'dbFieldCat'        => $this->dbFieldCat,
+                'dbFieldLang'       => $this->dbFieldLang,
+                'id'                => $this->id,
+                'order'             => $this->order,
+                'idCategorie'       => $this->idCategorie,
+                'idLangue'          => $this->idLangue,
+                ];
+
+            return $this->errors;
         }
         
         return true;
     }
-
+    
     /**
+     * Initiate and execute the process of changing element position below from it's actual position
+     * Parameters transfered are used to fill current class attributes of informations (fields and datas from the table)
      * 
-     * @return string
+     * 'dbFieldId' => STRING
+     * 'dbFieldCat' => STRING | ARRAY (Accessory)
+     * 'dbFieldLang' => STRING (Accessory)
+     * 
+     * 'id' => INT
+     * 'idCategorie' => INT
+     * 'order' => INT
+     * 'idLangue' => INT (Accessory)
+     * 
+     * @example $position->moveDown([ 'id' => INT, 'dbFieldId' => STRING, 'order' => INT[, 'idCategorie' => INT][, 'dbFieldCat' => STRING || ARRAY] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @param array $params Informations and datas to set
+     * @return boolean | array Sends true if proccess went well. Send an array of errors otherwise
      */
-    public function moveDown( $params ){	
-        
-        $this->setParams( $params );
+    public function moveDown( $params )
+    {	
+        $this->_setParams( $params );
 
-        $this->changePosition( 'down' );
+        $this->_changePosition( 'down' );
         
+        return $this->_result();
     }
 
     /**
+     * Initiate and execute the process of changing element position upward from it's actual position
+     * Parameters transfered are used to fill current class attributes of informations (fields and datas from the table)
      * 
-     * @return string
+     * 'dbFieldId' => STRING
+     * 'dbFieldCat' => STRING | ARRAY (Accessory)
+     * 'dbFieldLang' => STRING (Accessory)
+     * 
+     * 'id' => INT
+     * 'idCategorie' => INT (Accessory)
+     * 'order' => INT
+     * 'idLangue' => INT (Accessory)
+     * 
+     * @example $position->moveUp([ 'id' => INT, 'dbFieldId' => STRING, 'order' => INT[, 'idCategorie' => INT][, 'dbFieldCat' => STRING || ARRAY] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @param array $params Informations and datas to set
+     * @return boolean | array Sends true if proccess went well. Send an array of errors otherwise
      */
-    public function moveUp( $params ){	
+    public function moveUp( $params )
+    {	
+        $this->_setParams( $params );
         
-        $this->setParams( $params );
+        $this->_changePosition( 'up' );
         
-        $this->changePosition( 'up' );
-
+        return $this->_result();
     }
     
-    private function setParams( $params ){
-        
+    /**
+     * Parameters transfered are used to fill current class attributes of informations (fields and datas from the table)
+     * 
+     * 'dbFieldId' => STRING
+     * 'dbFieldCat' => STRING | ARRAY (Accessory)
+     * 'dbFieldLang' => STRING (Accessory)
+     * 
+     * 'id' => INT
+     * 'idCategorie' => INT (Accessory)
+     * 'order' => INT
+     * 'idLangue' => INT (Accessory)
+     * 
+     * @example $position->moveUp([ 'id' => INT, 'dbFieldId' => STRING, 'order' => INT[, 'idCategorie' => INT][, 'dbFieldCat' => STRING || ARRAY] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @param array $params Informations and datas to set
+     * @return void
+     */
+    private function _setParams( $params )
+    {
         if( count( $params ) > 0 )
         {
             $this->params = $params;
@@ -149,130 +274,236 @@ class Position{
         }
         if( isset( $this->dbFieldCat ) && isset( $this->id ) && isset( $this->dbFieldId ) && !isset( $this->idCategorie ) )
         {
-            $this->idCategorie = $this->setField( $this->dbFieldCat );
+            $this->idCategorie = $this->_setField( $this->dbFieldCat );
         }
         if( isset( $this->dbFieldLang ) && isset( $this->id ) && isset( $this->dbFieldId ) && !isset( $this->idLangue ) )
         {
-            $this->idLangue = $this->setField( $this->dbFieldLang ); 
+            $this->idLangue = $this->_setField( $this->dbFieldLang ); 
         }
     }
 
-    private function setField( $fieldName ){
+    /**
+     * Gets the values of a field in a table for an element. 
+     * This element is identified by it's id (attribute dbFieldId).
+     * This method is mostly used for getting values for a category or language field
+     *  
+     * @param string | array $fieldName Field to get it's current value
+     * @return string | array Value of the field or fields to check
+     */
+    private function _setField( $fieldName )
+    {
+        $orm = new Orm( $this->dbTable, $this->mapTable ); 
         
-        $db = DB::db();
-        $sql = 'SELECT * FROM '.$this->dbTable.
-               ' WHERE '.$this->dbFieldId.'=\''.$this->id.'\' LIMIT 1';
+        $row = $orm->select()->where([ $this->dbFieldId => $this->id ])->first();
 
-        
-        $result = $db->query( $sql );
-        
-        $row = $result->fetch_object();
-        
-        return $row->$fieldName;
-        
-    }
-    
-    /**
-     * 
-     * @return string
-     */
-    private function setQueryConditions(){
-        
-        $wheres = [];
-        $where  = '';
-        
-        if( isset( $this->idCategorie ) && isset( $this->dbFieldCat ) )
-        { 
-            array_push( $wheres, $this->dbFieldCat.' = \''.$this->idCategorie.'\'' );
+        if( !isset( $row ) )
+        {
+            $this->errors[ '_setField' ] = $orm->getQuery();
         }
         
-        if( isset( $this->idLangue ) && isset( $this->dbFieldLang ) ) 
+        if( is_array( $fieldName ) )
         {
-            array_push( $wheres, $this->dbFieldLang.' = '.$this->idLangue );
-        }
-        
-        if( count( $wheres ) > 0 )
-        {
-            foreach ( $wheres as $k => $w )
+            $cat = [];
+            foreach( $fieldName as $field )
             {
-                $where .= ( $k > 0 ) ? ' AND '.$w : ' WHERE '.$w;
-            }
-        }
-        
-        return $where;
-        
-    }
-    
-    
-    /**
-     * 
-     * @return string
-     */
-    public function updatePositions( $params = [] ){	
-        
-        $this->setParams( $params );
-        $db = DB::db();
-        
-        if( isset( $this->dbFieldCat ) )
-        {
-            $sql = 'SELECT * FROM '.$this->dbTable.' GROUP BY '.$this->dbTable.'.'.$this->dbFieldCat;
-            
-            $resultTab = $db->query( $sql );
-            
-            while( $rowTab = $resultTab->fetch_object() )
-            {
-                $fieldCat = $this->dbFieldCat;
-                
-                $sql = 'SELECT * FROM '.$this->dbTable.
-                ' WHERE '.$this->dbTable.'.'.$this->dbFieldCat.'=\''.$rowTab->$fieldCat.'\''.
-                ' ORDER BY '.$this->dbTable.'.'.$this->dbFieldPosition.' ASC';
-            
-                $resultCat = $db->query( $sql );
-                
-                $this->UpdateGroupPositions( $resultCat );
+                $cat[] = $row->$field;
             }
         }
         else
         {
-            $sql = 'SELECT * FROM '.$this->dbTable
-                .$this->setQueryConditions().
-                ' ORDER BY '.$this->dbTable.'.'.$this->dbFieldPosition.' ASC';
-            
-            $resultTab = $db->query( $sql );
+            $cat = $row->$fieldName;
+        }
         
-            $this->UpdateGroupPositions( $resultTab );
-        }
+        return $cat;
+        
     }
-
     
-    private function UpdateGroupPositions( $result )
-    {   
-        $n = 1;
-        while( $row = $result->fetch_object() )
-        {
-            $dbFieldId = $this->dbFieldId;
-            $this->requestUpdatePosition( $row->$dbFieldId, $n );
-
-            $n++;
+      /**
+     * Set in an array values set in attributes.
+     * Pattern : array[ attributeField => attributeValue ]
+     * 
+     * @param array $array Array that will be returned with datas in it
+     * @param string $attributeField
+     * @param string $attributeValue
+     * @return array
+     */
+    private function _setInArrayDatas( $array, $attributeField, $attributeValue)
+    {
+        
+        if( isset( $this->$attributeValue ) && isset( $this->$attributeField ) )
+        { 
+            if( is_array( $this->$attributeValue ) && is_array( $this->$attributeField ) )
+            {
+                foreach( $this->$attributeField as $n => $field )
+                {
+                    $value = ( isset( $this->$attributeValue[ $n ] ) )  ? $this->$attributeValue[ $n ] : 0;
+                    if( isset( $this->$attributeValue[ $n ] ) )
+                    {
+                        $array[ $this->dbTable . '.' . $field ] = $value;
+                    }
+                }
+            }
+            else
+            {
+                $value = ( isset( $this->$attributeValue ) )  ? $this->$attributeValue : 0;
+                if( isset( $this->$attributeValue ) )
+                {
+                    $array[ $this->$attributeField ] = $value;
+                }                
+            } 
         }
+        
+        return $array;
     }
     
     /**
+     * Defines condition to be set in the ORM request from the attribute values
      * 
-     * @return string
+     * @return array
      */
-    public function getNextPosition( $params = [] ){	
+    private function _setQueryConditions()
+    {   
+        $params = [];
         
-        $this->setParams( $params );
+        $params = $this->_setInArrayDatas( $params, 'dbFieldCat', 'idCategorie' );
         
-        $db = DB::db();
-        $sql = 'SELECT * FROM '.$this->dbTable.
-                $this->setQueryConditions();
-            
-        $result = $db->query( $sql );	
-        
-        return $result->num_rows;
+        $params = $this->_setInArrayDatas( $params, 'dbFieldLang', 'idLangue' );
+       
+        return $params;
+    }
+    
+    
 
+    /**
+     * Update positions of a group of elements one by one set in an array
+     * 
+     * @param array $results
+     */
+    private function _updateGroupPositions( $results )
+    {   
+        if( is_array( $results ) )
+        {
+            foreach( $results as $n => $result )
+            {
+                $fieldId = $this->dbFieldId;
+
+                $this->_requestUpdatePosition( $result->$fieldId, ( $n + 1 ) );
+            }
+        }
+    }
+    
+    
+    /**
+     * Update data in database depending on params sent
+     * 
+     * 'dbFieldId' => STRING
+     * 'dbFieldCat' => STRING | ARRAY (Accessory)
+     * 'dbFieldLang' => STRING (Accessory)
+     * 
+     * 'idCategorie' => INT (Accessory)
+     * 'idLangue' => INT (Accessory)
+     * 
+     * @example $position->updatePositions([ 'dbFieldId' => STRING[, 'dbFieldCat' => INT||ARRAY][[, 'idCategorie' => INT][, 'dbField' => STRING] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @param array $params
+     */
+    public function updatePositions( $params = [] )
+    {	
+        $this->_setParams( $params );
+        
+        $orm = new Orm( $this->dbTable, $this->mapTable );
+        
+        if( isset( $this->dbFieldCat ) )
+        {
+            $group = [];
+            
+            if( is_array( $this->dbFieldCat ) )
+            {
+                foreach( $this->dbFieldCat as $field )
+                {
+                    $group[ $this->dbTable ] = $field;
+                }
+            }
+            else
+            {
+                $group[ $this->dbTable ] = $this->dbFieldCat;
+            }
+            
+            $results = $orm->select()->group( $group )->execute();
+
+            if( !isset( $results ) )
+            {
+                $this->errors[ 'updatePositions' ] = $orm->getQuery();
+            }
+            
+            foreach( $results as $resultTab )
+            {
+                $where = [];
+                
+                if( is_array( $this->dbFieldCat ) )
+                {
+                    foreach( $this->dbFieldCat as $field )
+                    {
+                        $where[ $this->dbTable . '.' . $field ] = $resultTab->$field; // $rowTab->$field;
+                    }
+                }
+                else
+                {
+                    $dbFieldCat = $this->dbFieldCat;
+                    
+                    $where[ $this->dbTable . '.' . $this->dbFieldCat ] = $resultTab->$dbFieldCat; // $rowTab->$this->dbFieldCat;
+                }
+                
+                $resultsCat = $orm->select()->where( $where )->order( [ $this->dbFieldPosition => 'ASC' ] )->execute();
+
+                if( !isset( $resultsCat ) )
+                {
+                    $this->errors[ 'updatePositions' ] = $orm->getQuery();
+                }
+                
+                $this->_updateGroupPositions( $resultsCat );
+            }
+        }
+        else
+        {
+            $resultsCat = $orm->select()->where( $this->_setQueryConditions() )->order( [ $this->dbFieldPosition => 'ASC' ] )->execute();
+
+            if( !isset( $resultsCat ) )
+            {
+                $this->errors[ 'updatePositions' ] = $orm->getQuery();
+            }
+        
+            $this->_updateGroupPositions( $resultsCat );
+        }
+    }
+    
+    
+    /**
+     * Send back the next position available depending on a category and/or language if necessary
+     * 
+     * 'dbFieldCat' => STRING | ARRAY (Accessory)
+     * 'dbFieldLang' => STRING (Accessory)
+     * 
+     * 'idCategorie' => INT (Accessory)
+     * 'idLangue' => INT (Accessory)
+     * 
+     * @example $position->getNextPosition([ ['idCategorie' => INT][, 'dbFieldCat' => STRING] ][, 'idLangue' => INT][, 'dbFieldLang' => STRING] ]);
+     * @param type $params
+     * @return object
+     */
+    public function getNextPosition( $params = [] )
+    {	
+        $this->_setParams( $params );
+        
+        $orm = new Orm( $this->dbTable, $this->mapTable );
+        
+        $numRows = $orm->select()->where( $this->_setQueryConditions() )->count();
+
+        if( !isset( $numRows ) )
+        {
+            $this->errors[ 'getNextPosition' ] = $orm->getQuery();
+        }
+        
+        return $numRows;
     }
     
 }
