@@ -1726,23 +1726,22 @@ class Orm{
         if(is_null( $value ) )
         {
             $string .= ' null ';
-            
         }
-        else if( $type === '_where' || $type === '_values' || $type === '_set' )
+        else if( $type === '_where' )
         {
-            //$string .= ' \''.$this->_db->real_escape_string( $value ).'\' ';
+            $string .= ' \''.$this->_db->real_escape_string( $value ).'\' ';
+        }
+        else if( $type === '_values' || $type === '_set' )
+        {
             $string .= ' \''.$value.'\' ';
-            
         }
         else if( $type === '_like' )
         {
-            //$string .= ' \'%'.$this->_db->real_escape_string( $value ).'%\' ';
-            $string .= ' \'%'.$value.'%\' ';
+            $string .= ' \'%'.$this->_db->real_escape_string( $value ).'%\' ';
         }
         else
         {
-            //$string .= ' '.$this->_db->real_escape_string( $value ).' ';
-            $string .= ' '.$value.' ';
+            $string .= ' '.$this->_db->real_escape_string( $value ).' ';
         }
         
         return $string;

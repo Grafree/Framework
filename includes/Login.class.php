@@ -52,7 +52,7 @@ final class Login
         
         if( self::$_request->getVar( 'adminuser' ) !== null )
         {
-            if( self::_login( self::$_request->getVar( 'adminuser' ) ) ) 
+            if( self::_login( self::$_request->getVar( 'adminuser', false, 'P' ) ) ) 
             {
                 header('location: ' . SITE_URL . '/home'); exit;
             }
@@ -652,7 +652,7 @@ final class Login
     {
         $request = Request::getInstance();
         
-        if( ( ( $userPassword = $request->getVar( 'adminpass' ) ) ) !== null ) 
+        if( ( ( $userPassword = $request->getVar( 'adminpass', false, 'P' ) ) ) !== null ) 
         {    
             $Orm    = new Orm( 'users' );
 
