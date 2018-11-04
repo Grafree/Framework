@@ -1,7 +1,5 @@
 <?php
 namespace includes\tools;
-
-include_once( SITE_PATH . '/includes/tools/file.class.php' );
 /**
  * The upload class  :
  *  - gets files informations when uploaded 
