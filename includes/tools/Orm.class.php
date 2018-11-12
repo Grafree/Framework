@@ -1154,11 +1154,9 @@ class Orm{
         
         if( count( $fields ) > 0 )
         {
-            $n = 0;
-            foreach( $fields as $field ){
-                $field .= ( $n > 0 ) ? ', ' : '';
-                $field .= ' '.$field.'';
-                $n++;
+            foreach( $fields as $n => $fieldname )
+            {
+                $field .= ( $n > 0 ) ? ', ' . $fieldname : '' . $fieldname;
             }
         }
         else 
