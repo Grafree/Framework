@@ -1132,6 +1132,7 @@ class Orm{
     }
        
     
+   
     /**
      * SELECT : querie preparation
      * 
@@ -1139,25 +1140,32 @@ class Orm{
      * 
      * Initialize the select process. By it's own, it selects the whole table
      * This method is mandatory to the rest of the process. Other methods will
-     * be add depending on what is expected and ALLWAYS will end with execute() 
+     * be add depending on what is expected and ALWAYS will end with execute() 
      * or first() method.
      * For example : $obj->select()->where([...])->excute();
      * 
-     * @param array $fields | (optional) List of field to select.
-     *                        Defines the fields expected to be selected
-     *                        Example : ['IdField', 'NameField', 'InfoField'] 
+     * @param array|String $fields | (optional) List of field to select.
+     *                               Defines the fields expected to be selected
+     *                               From a string
+     *                               Example : 'IdField, NameField, InfoField'
+     *                               or an array
+     *                               Example : ['IdField', 'NameField', 'InfoField'] 
      * @return object       | Send the current object
      */
-    public function select( array $fields = [] ){	
-        
+    public function select( $fields = [] )
+    {   
         $field = '';
         
-        if( count( $fields ) > 0 )
+        if( is_array( $fields ) && count( $fields ) > 0 )
         {
             foreach( $fields as $n => $fieldname )
             {
-                $field .= ( $n > 0 ) ? ', ' . $fieldname : '' . $fieldname;
+               $field .= ( $n > 0 ) ? ', ' . $fieldname : '' . $fieldname; 
             }
+        }
+        else if( !empty( $fields ) ) 
+        {
+            $field .= $fields;
         }
         else 
         {
@@ -1167,6 +1175,54 @@ class Orm{
         $this->_select = 'SELECT '.$field.' FROM '.$this->_dbTable;
         
         return $this;
+    }
+    
+    /**
+     * Prepare a list of fields to be put in a Select query
+     * 
+     * @param array $maps           List of fields set as keys in an array. 
+     *                              Example : ['TableName'=>['FieldName1'=>'infos..', 'Fieldname2'=>'infos], 'TableName2'=>['FieldName1'=>'infos..', 'Fieldname2'=>'infos] ]
+     * @param array $unsetfields   (optional) Fields that should not be set in the Select Query. 
+     *                              Example : ['TableName.NameField','TableName.NameField2']
+     *                              Be aware that the table name is MANDATORY. It can be usefull in case there 
+     *                              is different fields with the same name coming from two or more tables
+     * @param array $alias         (optional) Fields that needs to be transformed as alias
+     *                              Example : ['TableName.NameField'=>'AliasFieldName']
+     *                              Be aware that the table name is MANDATORY. It can be usefull in case there 
+     *                              is different fields with the same name coming from two or more tables
+     */
+    public function selectPrepareFields( array $maps = [], array $unsetfields = [], array $alias = [] )
+    {
+        $selectString = '';
+        
+        $nField = 0;
+        
+        foreach( $maps as $table => $fields )
+        {
+            if( is_array( $fields ) )
+            {
+                foreach( $fields as $field => $infos )
+                {
+                    if( !in_array( $table. '.' . $field, $unsetfields ) )
+                    {
+                        $aliasField = array_key_exists( $table. '.' . $field, $alias );
+                        if( !$aliasField )
+                        {
+                            $fieldSelect = $table. '.' . $field;
+                        }
+                        else
+                        {
+                            $fieldSelect = $table. '.' . $field . ' AS ' .$alias[ $table. '.' . $field ];
+                        }
+                        $selectString .= ( $nField > 0 ) ? ', ' . $fieldSelect : $fieldSelect;
+
+                        $nField++;
+                    }
+                }
+            }
+        }
+        
+        return $selectString;
     }
     
     
